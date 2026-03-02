@@ -24,7 +24,7 @@ jobs:
             | xargs -0 javac -d build/classes
 
       - name: Package JAR
-        run: jar cf minecraft-server.jar -C build/classes .
+        run: jar cfe minecraft-server.jar net.minecraft.server.MinecraftServer -C build/classes .
 
       - name: Upload JAR artifact
         uses: actions/upload-artifact@v4
