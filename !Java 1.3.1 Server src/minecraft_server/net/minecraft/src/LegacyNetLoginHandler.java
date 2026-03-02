@@ -157,8 +157,8 @@ public class LegacyNetLoginHandler implements Runnable
         /* long seed = */ dis.readLong();
         /* int gameTypeId = */ dis.readInt();
         /* int dimension = */ dis.readByte();
-        /* int mapHeight = */ dis.readByte() & 0xFF;
-        /* int clientMaxPlayers = */ dis.readByte() & 0xFF;
+        /* int mapHeight = */ dis.readByte();
+        /* int clientMaxPlayers = */ dis.readByte();
         /* long offlineXuid = */ dis.readLong();
         /* long onlineXuid = */ dis.readLong();
         /* boolean friendsOnlyUGC = */ dis.readBoolean();
@@ -205,7 +205,9 @@ public class LegacyNetLoginHandler implements Runnable
         playerEntity.setWorld(world);
         playerEntity.theItemInWorldManager.setWorld(world);
         ChunkCoordinates spawnPoint = world.getSpawnPoint();
-        mcServer.func_71203_ab().func_72381_a(playerEntity, (EntityPlayerMP) null, world);
+        // Inline equivalent of private ServerConfigurationManager.func_72381_a with null second arg:
+        // field_72410_m is never assigned (always null), so the effective call is just func_73077_b.
+        playerEntity.theItemInWorldManager.func_73077_b(world.getWorldInfo().getGameType());
 
         logger.info(playerName + "[" + socket.getRemoteSocketAddress() + "] logged in (Legacy) with entity id " + playerEntity.entityId);
 
