@@ -22,6 +22,7 @@ public class DedicatedServer extends MinecraftServer implements IServer
     private EnumGameType theGameType;
     private NetworkListenThread field_71336_r;
     private boolean field_71335_s = false;
+    private LegacyLANBroadcastThread field_lanBroadcast;
 
     public DedicatedServer(File par1File)
     {
@@ -164,6 +165,12 @@ public class DedicatedServer extends MinecraftServer implements IServer
             this.field_71339_n.startThread();
         }
 
+        if (this.field_71340_o.getBooleanProperty("lan-broadcast", true))
+        {
+            this.field_lanBroadcast = new LegacyLANBroadcastThread(this);
+            this.field_lanBroadcast.start();
+        }
+
         return true;
     }
 
@@ -212,6 +219,10 @@ public class DedicatedServer extends MinecraftServer implements IServer
 
     protected void func_71240_o()
     {
+        if (this.field_lanBroadcast != null)
+        {
+            this.field_lanBroadcast.stopBroadcast();
+        }
         System.exit(0);
     }
 

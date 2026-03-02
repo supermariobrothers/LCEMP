@@ -1,6 +1,7 @@
 package net.minecraft.src;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.InetAddress;
 import java.net.Socket;
 import java.security.PrivateKey;
@@ -40,8 +41,18 @@ public class NetLoginHandler extends NetHandler
 
     public NetLoginHandler(MinecraftServer par1MinecraftServer, Socket par2Socket, String par3Str) throws IOException
     {
+        this(par1MinecraftServer, par2Socket, par2Socket.getInputStream(), par3Str);
+    }
+
+    /**
+     * Constructs a NetLoginHandler using an externally provided InputStream.
+     * Used when the connection input stream has already been partially consumed
+     * (e.g. after protocol detection using a PushbackInputStream).
+     */
+    public NetLoginHandler(MinecraftServer par1MinecraftServer, Socket par2Socket, InputStream par3InputStream, String par4Str) throws IOException
+    {
         this.mcServer = par1MinecraftServer;
-        this.field_72538_b = new TcpConnection(par2Socket, par3Str, this, par1MinecraftServer.getKeyPair().getPrivate());
+        this.field_72538_b = new TcpConnection(par2Socket, par3InputStream, par4Str, this, par1MinecraftServer.getKeyPair().getPrivate());
         this.field_72538_b.field_74468_e = 0;
     }
 

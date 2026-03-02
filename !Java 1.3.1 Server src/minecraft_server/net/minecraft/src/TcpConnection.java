@@ -4,6 +4,7 @@ import java.io.BufferedOutputStream;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.Socket;
 import java.net.SocketAddress;
 import java.net.SocketException;
@@ -48,6 +49,16 @@ public class TcpConnection implements NetworkManager
 
     public TcpConnection(Socket par1Socket, String par2Str, NetHandler par3NetHandler, PrivateKey par4PrivateKey) throws IOException
     {
+        this(par1Socket, par1Socket.getInputStream(), par2Str, par3NetHandler, par4PrivateKey);
+    }
+
+    /**
+     * Constructs a TcpConnection using an externally provided InputStream.
+     * Used when the connection input stream has already been partially consumed
+     * (e.g. after protocol detection using a PushbackInputStream).
+     */
+    public TcpConnection(Socket par1Socket, InputStream par1InputStream, String par2Str, NetHandler par3NetHandler, PrivateKey par4PrivateKey) throws IOException
+    {
         this.field_74463_A = par4PrivateKey;
         this.field_74479_i = par1Socket;
         this.field_74476_j = par1Socket.getRemoteSocketAddress();
@@ -63,7 +74,7 @@ public class TcpConnection implements NetworkManager
             System.err.println(var6.getMessage());
         }
 
-        this.field_74477_k = new DataInputStream(par1Socket.getInputStream());
+        this.field_74477_k = new DataInputStream(par1InputStream);
         this.field_74474_l = new DataOutputStream(new BufferedOutputStream(par1Socket.getOutputStream(), 5120));
         this.field_74482_u = new TcpReaderThread(this, par2Str + " read thread");
         this.field_74483_t = new TcpWriterThread(this, par2Str + " write thread");
