@@ -1,6 +1,8 @@
 package net.minecraft.src;
 
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.PushbackInputStream;
 import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -85,8 +87,43 @@ public class ServerListenThread extends Thread
                     this.field_71776_c.put(var2, Long.valueOf(var3));
                 }
 
-                NetLoginHandler var9 = new NetLoginHandler(this.field_71771_f.getServer(), var1, "Connection #" + this.field_71773_d++);
-                this.func_71764_a(var9);
+                String connectionId = "Connection #" + this.field_71773_d++;
+
+                // Detect the protocol by peeking at the first three bytes:
+                //   Java 1.3.1 client:  [0x02] [0x27]       (packet id=2, then byte protocolVersion=39)
+                //   Legacy LCE client:  [0x02] [0x01] [0xEF] (packet id=2, then short netcodeVersion=495)
+                PushbackInputStream pis = new PushbackInputStream(var1.getInputStream(), 3);
+                byte[] peek = new byte[3];
+                int bytesRead = 0;
+
+                while (bytesRead < peek.length)
+                {
+                    int n = pis.read(peek, bytesRead, peek.length - bytesRead);
+                    if (n == -1) break;
+                    bytesRead += n;
+                }
+
+                if (bytesRead > 0)
+                {
+                    pis.unread(peek, 0, bytesRead);
+                }
+
+                boolean isLegacy = bytesRead == 3
+                    && (peek[0] & 0xFF) == 2          // packet id = PreLogin / ClientProtocol
+                    && (peek[1] & 0xFF) == 1           // high byte of 495 (0x01EF)
+                    && (peek[2] & 0xFF) == 0xEF;       // low  byte of 495
+
+                if (isLegacy)
+                {
+                    // Hand off to the Legacy login handler (runs on its own thread).
+                    new LegacyNetLoginHandler(this.field_71771_f.getServer(), var1, pis, connectionId);
+                }
+                else
+                {
+                    // Standard Java 1.3.1 login path.
+                    NetLoginHandler var9 = new NetLoginHandler(this.field_71771_f.getServer(), var1, pis, connectionId);
+                    this.func_71764_a(var9);
+                }
             }
             catch (IOException var8)
             {
